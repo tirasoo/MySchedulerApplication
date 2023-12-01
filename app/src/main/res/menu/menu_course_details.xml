@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/save"
+        android:title="Save Course" />
+
+    <item
+        android:id="@+id/delete"
+        android:title="Delete Course" />
+
+    <item
+        android:id="@+id/alertstart"
+        android:title="Course Start Date Alert" />
+    <item
+        android:id="@+id/alertend"
+        android:title="Course End Date Alert" />
+    <item
+        android:id="@+id/sharenote"
+        android:title="Share Note" />
+</menu>
