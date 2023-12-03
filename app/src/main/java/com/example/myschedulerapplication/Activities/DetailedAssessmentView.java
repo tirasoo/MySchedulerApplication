@@ -29,7 +29,6 @@ import java.util.Locale;
 
 public class DetailedAssessmentView extends AppCompatActivity {
     Repository repository;
-    int id;
     int courseID;
     int numCourses;
     int assessmentID;
@@ -55,6 +54,7 @@ public class DetailedAssessmentView extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_assessment_details);
+        //repository = new Repository(getApplication());
         assessTitle = getIntent().getStringExtra("assessmentTitle");
         editTitle = findViewById(R.id.assessmentTitle);
         editTitle.setText(assessTitle);
@@ -67,13 +67,14 @@ public class DetailedAssessmentView extends AppCompatActivity {
         assessEnd = getIntent().getStringExtra("assessmentEndDate");
         editEnd = findViewById(R.id.assenddate);
         editEnd.setText(assessEnd);
-        id = getIntent().getIntExtra("assessmentID", -1);
+        assessmentID = getIntent().getIntExtra("assessmentID", -1);
         courseID = getIntent().getIntExtra("courseID", -1);
         repository = new Repository(getApplication());
         allAssessments = repository.getAllAssessments();
         for (Assessment a : allAssessments) {
             if (a.getAssessmentID() == assessmentID) assessment = a;
         }
+
     }
 
     @Override
@@ -92,28 +93,33 @@ public class DetailedAssessmentView extends AppCompatActivity {
             return true;
         }
         if (item.getItemId() == R.id.asssave) {
+            Assessment assessment;
             if (assessmentID == -1) {
-                if (repository.getAllAssessments().size() == 0) assessmentID = 1;
-                else
-                    assessmentID = repository.getAllAssessments().get(repository.getAllAssessments().size() - 1).getAssessmentID() + 1;
-                assessment = new Assessment(assessmentID, editTitle.getText().toString(), editType.getText().toString(), editStart.getText().toString(), editEnd.getText().toString(), courseID);
+                assessment = new Assessment(0, editTitle.getText().toString(), editType.getText().toString(), editStart.getText().toString(), editEnd.getText().toString(), courseID);
                 repository.insert(assessment);
-                startActivity(new Intent(DetailedAssessmentView.this,AssessmentsList.class));
-                finish();
+                Intent intent=new Intent(DetailedAssessmentView.this, AssessmentsList.class);
+                intent.putExtra("courseID", courseID);
+                startActivity(intent);
             } else {
                 try{
                 assessment = new Assessment(assessmentID, editTitle.getText().toString(), editType.getText().toString(), editStart.getText().toString(), editEnd.getText().toString(), courseID);
-                repository.update(assessment);}
+                repository.update(assessment);
+                Intent intent=new Intent(DetailedAssessmentView.this, AssessmentsList.class);
+                intent.putExtra("courseID", courseID);
+                startActivity(intent);}
                 catch (Exception e){
+                    e.printStackTrace();
                 }
             }
             return true;
         }
         if(item.getItemId()== R.id.deleteassessment){
+            for (Assessment assessment : repository.getAllAssessments()) {
+                if (assessment.getCourseID() == courseID) currentAssessment = assessment;
+            }
             repository.delete(currentAssessment);
-            Toast.makeText(getApplicationContext(), "Assessment deleted successfully", Toast.LENGTH_LONG).show();
-            Intent intent = new Intent(DetailedAssessmentView.this, AssessmentsList.class);
-            startActivity(intent);
+            Toast.makeText(DetailedAssessmentView.this, "Assessment has been deleted successfully", Toast.LENGTH_LONG).show();
+            return true;
         }
 
         if(item.getItemId()== R.id.alertstart) {

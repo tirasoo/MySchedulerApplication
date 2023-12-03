@@ -64,6 +64,8 @@ public class DetailedCourseView extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        //Sets Edittext to IDs
+        //Sets EditText to Course Variables
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_course_details);
         repository = new Repository(getApplication());
@@ -89,6 +91,7 @@ public class DetailedCourseView extends AppCompatActivity {
         email = findViewById(R.id.emailinstructor);
         email.setText(courseEmail);
         termID = getIntent().getIntExtra("termID",-1);
+        courseID= getIntent().getIntExtra("courseID",-1);
         termSpinner =findViewById(R.id.termsspinner);
         //repository = new Repository(getApplication());
         List<Term>terms = repository.getAllTerms();
@@ -124,14 +127,16 @@ public class DetailedCourseView extends AppCompatActivity {
                 courseStatus.setSelection(3);
                 break;
         }
-        RecyclerView recyclerView = findViewById(R.id.courserecyclerView);
+        //Set and Show the associated Assessments.
         repository = new Repository(getApplication());
+        RecyclerView recyclerView = findViewById(R.id.courserecyclerView);
         final AssessmentAdapter assessmentAdapter = new AssessmentAdapter(this);
         recyclerView.setAdapter(assessmentAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         List<Assessment> assessments = new ArrayList<>();
-        for (Assessment a : repository.getAllAssessments()) {
-            if (a.getCourseID() == courseID) assessments.add(a);
+        for (Assessment assess : repository.getAllAssessments()) {
+            if (assess.getCourseID() == courseID)
+                assessments.add(assess);
         }
         assessmentAdapter.setAssessments(assessments);
 
@@ -163,12 +168,12 @@ public class DetailedCourseView extends AppCompatActivity {
         if(item.getItemId() == android.R.id.home) {
             this.finish();
             return true;}
+        /**
+         *Save Course Button. Saves fields to Database and in the DetailedCourseView screen,navigation back to the CourseList Screen.
+         */
         if(item.getItemId() == R.id.save) {
             Course course;
              if (courseID == -1) {
-                 if (repository.getAllCourses().size() == 0) courseID = 1;
-                 else
-                     courseID = repository.getAllCourses().get(repository.getAllCourses().size() - 1).getCourseID() + 1;
                  String cName = courseName.getText().toString();
                  String cStart = courseStart.getText().toString();
                  String cEnd = courseEnd.getText().toString();
@@ -176,17 +181,20 @@ public class DetailedCourseView extends AppCompatActivity {
                  String cInstructPhone = instructorPhone.getText().toString();
                  String cNotes = courseNotes.getText().toString();
                  String cEmail = email.getText().toString();
-                 course = new Course(courseID,cName,cStart,cEnd,status,cInstructName,cInstructPhone,cEmail,cNotes,termID);
+                 course = new Course(0,cName,cStart,cEnd,status,cInstructName,cInstructPhone,cEmail,cNotes,termID);
                  repository.insert(course);
-                 //saves the information in the DetailedCourseView screen and navigates back to the CourseListView Activity where you can confirm the saving of the course.
-                 startActivity(new Intent(DetailedCourseView.this,CoursesList.class));
-                 finish();
+                 Intent intent=new Intent(DetailedCourseView.this,CoursesList.class);
+                 intent.putExtra("termID", termID);
+                 startActivity(intent);
              } else {
                  try{
                      course = new Course(courseID, courseName.getText().toString(),courseStart.getText().toString(),courseEnd.getText().toString(),status,instructorName.getText().toString(),instructorPhone.getText().toString(),email.getText().toString(),courseNotes.getText().toString(),termID);
-                     repository.update(course);}
+                     repository.update(course);
+                 Intent intent=new Intent(DetailedCourseView.this,CoursesList.class);
+                 intent.putExtra("termID", termID);
+                 startActivity(intent);}
                  catch (Exception e){
-                     //e.printStackTrace();
+                     e.printStackTrace();
                  }
              }
              return true;
@@ -203,8 +211,8 @@ public class DetailedCourseView extends AppCompatActivity {
         if (item.getItemId()== R.id.sharenote) {
             Intent sendIntent = new Intent();
             sendIntent.setAction(Intent.ACTION_SEND);
-            sendIntent.putExtra(Intent.EXTRA_TEXT, editTextNotes.getText().toString() +"EXTRA_TEXT");
-            sendIntent.putExtra(Intent.EXTRA_TITLE, editTextNotes.getText().toString()+"EXTRA_TITLE");
+            sendIntent.putExtra(Intent.EXTRA_TEXT, courseNotes.getText().toString() +"EXTRA_TEXT");
+            sendIntent.putExtra(Intent.EXTRA_TITLE, "My Course Notes");
             sendIntent.setType("text/plain");
             Intent shareIntent = Intent.createChooser(sendIntent, null);
             startActivity(shareIntent);
@@ -266,6 +274,7 @@ public class DetailedCourseView extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        //Assessments Recycler views
         RecyclerView recyclerView = findViewById(R.id.courserecyclerView);
         final AssessmentAdapter assessmentAdapter = new AssessmentAdapter(this);
         recyclerView.setAdapter(assessmentAdapter);
